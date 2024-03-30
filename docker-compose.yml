@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
+    volumes:
+      - ./src:/var/www/html
+    ports:
+      - "80:80"
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./docker/db/mysql_data:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=${DB_NAME:-ci4}
+      - MYSQL_USER=${DB_USER:-ci4}
+      - MYSQL_PASSWORD=${DB_PASS:-ci4}
+      - MYSQL_ROOT_PASSWORD=${DB_PASS:-ci4}
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=db
+      - PMA_USER=${DB_USERNAME:-ci4}
+      - PMA_PASSWORD=${DB_PASSWORD:-ci4}
+      - MSSQL_COLLATION=Japanese_CI_AS
+    depends_on:
+      - db
+    links:
+      - db
+    ports:
+      - 8580:80
+    volumes:
+      - /sessions
